@@ -34,6 +34,21 @@ This skill analyzes quarterly metrics data and generates a comprehensive report 
    - High-level overview of the quarter's performance
    - Most significant achievement or concern
    
+   ### Key Findings (Quick-Scan Section)
+   **Improvements:**
+   - Notable positive changes and improvements from previous quarter
+   - Metrics that show upward trends
+   
+   **Critical Concerns:**
+   1. Most urgent issues requiring immediate attention (ranked by severity)
+   2. Trending problems that could impact project health
+   3. Metrics showing significant decline
+   
+   **Top Recommendations:**
+   1. **Immediate:** Critical actions needed within 2 weeks
+   2. **Short-term:** Actions needed through end of quarter
+   3. **Ongoing:** Continuous improvement areas
+   
    ### Key Metrics Overview
    - Present the main numbers (PRs, Issues, Downloads)
    - Compare to previous quarter (QoQ change)
@@ -91,6 +106,7 @@ This skill analyzes quarterly metrics data and generates a comprehensive report 
 - **Consider seasonality**: Note if quarterly patterns are typical or anomalous
 - **Highlight outliers**: Call out unusual spikes or drops in any metric
 - **Don't cry wolf on partial data**: For incomplete quarters, only flag true risks (bad rates, declining trends), not low volumes that are expected mid-quarter
+- **Key Findings should be scannable**: The Key Findings section should provide a quick executive summary that busy stakeholders can read in 30 seconds. Keep it concise with 2-3 improvements, 3-4 critical concerns, and 3 top recommendations
 
 ## Example invocations
 

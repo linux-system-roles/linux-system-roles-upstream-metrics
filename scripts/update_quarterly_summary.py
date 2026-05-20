@@ -156,8 +156,8 @@ def aggregate_galaxy_collections(quarter):
 
     if cumulative_file.exists():
         cumulative_df = pd.read_csv(cumulative_file)
-        # Exclude current quarter if it exists, then get the last row
-        previous_df = cumulative_df[cumulative_df['Quarter'] != quarter]
+        # Exclude current quarter if it exists, sort chronologically, then get the last row
+        previous_df = cumulative_df[cumulative_df['Quarter'] != quarter].sort_values('Quarter')
         if len(previous_df) > 0:
             last_row = previous_df.iloc[-1]
             previous_cumulative['fedora.linux_system_roles'] = int(last_row.get('fedora.linux_system_roles', 0))

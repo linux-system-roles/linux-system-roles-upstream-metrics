@@ -44,8 +44,8 @@ def setup_plot_style():
     """Set up matplotlib style"""
     try:
         plt.style.use(GRAPH_STYLE)
-    except:
-        print(f"Warning: Style '{GRAPH_STYLE}' not found, using default")
+    except OSError as e:
+        print(f"Warning: Style '{GRAPH_STYLE}' not found ({e}), using default")
         plt.style.use('seaborn-v0_8')
 
 
@@ -68,7 +68,7 @@ def generate_github_prs_graph(quarter):
         print("  No github_prs_summary.csv found")
         return
 
-    df = pd.read_csv(summary_file)
+    df = pd.read_csv(summary_file).sort_values('Quarter')
     # Show ALL data, not just last N quarters
     print(f"  Showing {len(df)} quarters of data")
 
@@ -116,7 +116,7 @@ def generate_github_issues_graph(quarter):
         print("  No github_issues_summary.csv found")
         return
 
-    df = pd.read_csv(summary_file)
+    df = pd.read_csv(summary_file).sort_values('Quarter')
     # Show ALL data, not just last N quarters
     print(f"  Showing {len(df)} quarters of data")
 
@@ -291,7 +291,7 @@ def generate_legacy_total_graph(quarter):
         print("  No galaxy_legacy_summary.csv found")
         return
 
-    df = pd.read_csv(summary_file)
+    df = pd.read_csv(summary_file).sort_values('Quarter')
     # Show ALL data, not just last N quarters
     print(f"  Showing {len(df)} quarters of data")
 
@@ -344,7 +344,7 @@ def generate_legacy_quarterly_delta_total_graph(quarter):
         print("  No galaxy_legacy_summary.csv found")
         return
 
-    df = pd.read_csv(summary_file)
+    df = pd.read_csv(summary_file).sort_values('Quarter')
 
     if len(df) < 2:
         print("  Need at least 2 quarters to calculate delta")
@@ -400,7 +400,7 @@ def generate_collection_graph(quarter, collection_name):
         print("  No galaxy_collections_summary.csv found")
         return
 
-    df = pd.read_csv(summary_file)
+    df = pd.read_csv(summary_file).sort_values('Quarter')
     # Show ALL data, not just last N quarters
     print(f"  Showing {len(df)} quarters of data")
 

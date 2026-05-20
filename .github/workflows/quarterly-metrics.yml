@@ -23,7 +23,8 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
-      contents: write  # Required to commit and push changes
+      contents: write        # Required to commit and push changes
+      pull-requests: write   # Required to create pull requests
 
     steps:
       - name: Checkout repository
@@ -46,10 +47,13 @@ jobs:
 
       - name: Determine quarter and date range
         id: quarter
+        env:
+          INPUT_QUARTER: ${{ github.event.inputs.quarter }}
+          INPUT_DATE_RANGE: ${{ github.event.inputs.date_range }}
         run: |
           # Use input if provided, otherwise calculate current quarter
-          if [ -n "${{ github.event.inputs.quarter }}" ]; then
-            QUARTER="${{ github.event.inputs.quarter }}"
+          if [ -n "$INPUT_QUARTER" ]; then
+            QUARTER="$INPUT_QUARTER"
           else
             # Calculate quarter from current date
             YEAR=$(date +%Y)
@@ -60,8 +64,8 @@ jobs:
           echo "quarter=${QUARTER}" >> $GITHUB_OUTPUT
 
           # Determine date range
-          if [ -n "${{ github.event.inputs.date_range }}" ]; then
-            DATE_RANGE="${{ github.event.inputs.date_range }}"
+          if [ -n "$INPUT_DATE_RANGE" ]; then
+            DATE_RANGE="$INPUT_DATE_RANGE"
           else
             # Auto-calculate date range based on quarter
             YEAR=$(echo ${QUARTER} | cut -d'-' -f1)

@@ -92,13 +92,22 @@ get_prs() {
       --jq '.[] | "\(.number) \(.author.login) \(.author.is_bot) \(.state) \(.title)"'
 }
 
-# get issues with retry
-get_issues() {
+# get issues created in date range
+get_issues_created() {
     retry_command gh issue list -R "$upstream_org/$repo" \
       -S "created:$DATE_RANGE" \
       --state all \
       --json number,author,state \
       --jq '.[] | "\(.number) \(.author.login) \(.author.is_bot) \(.state)"'
+}
+
+# get issues closed in date range
+get_issues_closed() {
+    retry_command gh issue list -R "$upstream_org/$repo" \
+      -S "closed:$DATE_RANGE" \
+      --state closed \
+      --json number,author \
+      --jq '.[] | "\(.number) \(.author.login) \(.author.is_bot)"'
 }
 
 get_prs > prs.txt
@@ -137,7 +146,8 @@ while read -r number author is_bot state title; do
 done < prs.txt
 rm -f prs.txt
 
-get_issues > issues.txt
+# Count issues created in the date range
+get_issues_created > issues_created.txt
 # shellcheck disable=SC2034
 while read -r number author is_bot state; do
     # exclude bot issues completely
@@ -149,14 +159,24 @@ while read -r number author is_bot state; do
     if ! user_is_maintainer "$author"; then
         ISSUES_CREATED_NON_MAINT["$repo"]=$(("${ISSUES_CREATED_NON_MAINT[$repo]:-0}" + 1))
     fi
-    if [ "$state" = CLOSED ]; then
-        ISSUES_CLOSED["$repo"]=$(("${ISSUES_CLOSED[$repo]:-0}" + 1))
-        if ! user_is_maintainer "$author"; then
-            ISSUES_CLOSED_NON_MAINT["$repo"]=$(("${ISSUES_CLOSED_NON_MAINT[$repo]:-0}" + 1))
-        fi
+done < issues_created.txt
+rm -f issues_created.txt
+
+# Count issues closed in the date range (separate query to catch older issues)
+get_issues_closed > issues_closed.txt
+# shellcheck disable=SC2034
+while read -r number author is_bot; do
+    # exclude bot issues completely
+    if [[ "$is_bot" == "true" ]]; then
+        continue
     fi
-done < issues.txt
-rm -f issues.txt
+    ISSUES_CLOSED["$repo"]=$(("${ISSUES_CLOSED[$repo]:-0}" + 1))
+    # see if author is a maintainer
+    if ! user_is_maintainer "$author"; then
+        ISSUES_CLOSED_NON_MAINT["$repo"]=$(("${ISSUES_CLOSED_NON_MAINT[$repo]:-0}" + 1))
+    fi
+done < issues_closed.txt
+rm -f issues_closed.txt
 
 if [ -n "${PRS_CSVFILE:-}" ]; then
     if [ ! -s "${PRS_CSVFILE}" ]; then

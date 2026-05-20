@@ -86,6 +86,21 @@ make clean              # Remove temporary files
 - **Time-based queries:** Uses `gh pr list -S "created:2026-04-01..2026-06-30"`
 - **Excludes:** Bot PRs/issues, `ci:` PRs, `docs(changelog)` PRs, `[citest_skip]` PRs
 
+**⚠️ Methodology Changes (May 2026):**
+
+1. **Issues Closed Counting:** Prior to May 2026, "Issues Closed" only counted issues that were both created AND closed within the same quarter. Starting May 2026, the metric correctly counts ALL issues closed in the quarter regardless of creation date.
+   - Historical data (before May 2026): Undercounts closed issues
+   - Future data (May 2026+): Accurate count of issues closed in quarter
+   - Comparisons across this boundary are not directly valid
+
+2. **Bot and Automated PR Exclusions:** Starting May 2026, newly excluded:
+   - PRs/issues created by bots (using `author.is_bot` field)
+   - PRs with `[citest_skip]` in the title (automated test-skip PRs)
+
+   *(Note: `ci:` and `docs(changelog)` PRs were already excluded in historical data since 2023-Q3)*
+
+   Historical data (2023-Q3 through 2026-Q1) includes bot and `[citest_skip]` PRs, slightly inflating counts.
+
 ### Ansible Galaxy
 - **Legacy roles:** linux-system-roles namespace + willshersystems/sshd
 - **Collections:** fedora.linux_system_roles, microsoft.sql

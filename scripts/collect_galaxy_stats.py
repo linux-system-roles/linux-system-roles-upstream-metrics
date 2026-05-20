@@ -172,13 +172,11 @@ def get_collection_downloads_from_api(namespace, name):
 
     except requests.exceptions.HTTPError as e:
         if e.response.status_code == 404:
-            print(f"    ERROR: Collection not found (404)")
+            raise RuntimeError(f"Collection not found: {namespace}.{name} (404)") from e
         else:
-            print(f"    ERROR: HTTP {e.response.status_code}")
-        return None
+            raise RuntimeError(f"Failed to fetch {namespace}.{name}: HTTP {e.response.status_code}") from e
     except Exception as e:
-        print(f"    ERROR fetching collection data: {e}")
-        return None
+        raise RuntimeError(f"Failed to fetch {namespace}.{name}: {e}") from e
 
 
 def collect_collections():
@@ -195,11 +193,14 @@ def collect_collections():
         print(f"  Collection: {namespace}.{name}")
         download_count = get_collection_downloads_from_api(namespace, name)
 
+        if download_count is None:
+            raise RuntimeError(f"Missing download_count for {namespace}.{name}")
+
         collection_data.append({
             'namespace': namespace,
             'name': name,
             'full_name': f"{namespace}.{name}",
-            'download_count': download_count if download_count is not None else 0
+            'download_count': download_count
         })
 
     return collection_data
