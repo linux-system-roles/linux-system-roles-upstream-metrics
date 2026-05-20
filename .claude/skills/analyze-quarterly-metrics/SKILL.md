@@ -5,7 +5,7 @@ description: This skill should be used when the user asks to "analyze quarterly 
 
 # Quarterly Metrics Analysis Skill
 
-This skill analyzes quarterly metrics data and generates a comprehensive report with insights, trends, risks, and recommendations.
+This skill analyzes quarterly metrics data and generates a FOCUSED report (~400-500 words) with key metrics, highlights, top downloaded roles, concerns, and actionable recommendations.
 
 ## What to do
 
@@ -17,8 +17,8 @@ This skill analyzes quarterly metrics data and generates a comprehensive report 
 
 2. **Load the raw data** for the specified quarter:
    - Read the summary CSV files: `data/github_prs_summary.csv`, `data/github_issues_summary.csv`, `data/galaxy_legacy_summary.csv`, `data/galaxy_collections_summary.csv`
-   - Extract data for the specified quarter and the previous 3-4 quarters for comparison
-   - If `data/{{quarter}}/galaxy_legacy.csv` exists, read it for per-role download analysis
+   - Extract data for the specified quarter and the previous quarter for comparison
+   - If `data/{{quarter}}/galaxy_legacy.csv` exists, read it for top downloaded roles and growth analysis
 
 3. **Calculate key metrics** from the raw data:
    - **PR Merge Rate**: PRs Merged / (PRs Created - PRs Open) × 100 (excludes PRs still under review)
@@ -28,57 +28,40 @@ This skill analyzes quarterly metrics data and generates a comprehensive report 
    - **QoQ Growth rates**: Compare current quarter to previous quarter
    - **Fastest growing roles**: If per-role data exists, identify top gainers by comparing to previous quarter
 
-4. **Analyze the data** and generate a detailed report with these sections:
+4. **Analyze the data** and generate a FOCUSED report with these sections:
 
    ### Executive Summary (2-3 sentences)
-   - High-level overview of the quarter's performance
-   - Most significant achievement or concern
+   - High-level overview: what's the overall health? One key win, one key concern.
+   - Note if data is partial (for incomplete quarters)
    
-   ### Key Findings (Quick-Scan Section)
-   **Improvements:**
-   - Notable positive changes and improvements from previous quarter
-   - Metrics that show upward trends
+   ### Key Metrics (Table format)
+   - Comparison table: Current vs Previous Quarter
+   - PRs Created, Merged, Merge Rate
+   - External PRs, External Acceptance Rate, External % of total
+   - Issues Created, Closed, Resolution Rate
+   - Galaxy Legacy Downloads (QoQ change)
+   - Galaxy Collections Downloads (QoQ change)
    
-   **Critical Concerns:**
-   1. Most urgent issues requiring immediate attention (ranked by severity)
-   2. Trending problems that could impact project health
-   3. Metrics showing significant decline
+   ### Highlights (2-3 bullets)
+   - Notable achievements and positive changes
+   - Metrics that improved
+   - Balance the concerns with wins
    
-   **Top Recommendations:**
-   1. **Immediate:** Critical actions needed within 2 weeks
-   2. **Short-term:** Actions needed through end of quarter
-   3. **Ongoing:** Continuous improvement areas
+   ### Top Downloaded Roles (Top 5 list)
+   - List the 5 most downloaded roles with cumulative totals
+   - If per-role data exists for current and previous quarter, also show fastest growing/declining roles
    
-   ### Key Metrics Overview
-   - Present the main numbers (PRs, Issues, Downloads)
-   - Compare to previous quarter (QoQ change)
-   - Compare to same quarter last year (YoY if available)
+   ### Top Concerns (3-4 bullets)
+   - Most critical issues requiring attention
+   - Use specific numbers and percentages
+   - Only urgent/high-impact issues
    
-   ### Trend Analysis
-   - **PR Activity**: Are PRs increasing/decreasing? Merge rate trends?
-   - **External Contributions**: Growing or declining? Acceptance rate healthy?
-   - **Issue Management**: Resolution rate? Backlog growing?
-   - **Galaxy Downloads**: Which collections/roles are trending? Growth rate sustainable?
+   ### Recommendations (3-4 bullets)
+   - Most important actionable items
+   - Be specific and brief
+   - Focus on high-impact actions
    
-   ### Highlights & Achievements
-   - What went well this quarter?
-   - Notable improvements in metrics
-   - Fastest growing roles or areas
-   
-   ### Risks & Concerns
-   - Declining trends that need attention
-   - Bottlenecks or capacity issues
-   - Quality concerns (low acceptance rates, etc.)
-   - Areas falling behind
-   
-   ### Growth Opportunities
-   - Underutilized roles with potential
-   - Areas showing momentum
-   - External contributor engagement opportunities
-   
-   ### Recommendations
-   - 2-4 specific, actionable recommendations based on the data
-   - Focus on addressing risks and capturing opportunities
+   **TARGET LENGTH**: ~400-500 words. Scannable but informative.
    
 5. **Be specific with numbers**: Always cite actual metrics, percentages, and comparisons. Don't use vague language like "significant" without quantifying it.
 
@@ -99,21 +82,19 @@ This skill analyzes quarterly metrics data and generates a comprehensive report 
    - Save to `reports/{{quarter}}-analysis.md`
    - Create the reports directory if it doesn't exist
    - **Safe to overwrite**: If the report file already exists, overwrite it (reports are tracked in git, so previous versions are preserved)
-   - Notify the user where the file was saved
-
-9. **Output the analysis** directly to the user in Markdown format.
+   - Show the user a brief summary and notify where the full file was saved
 
 ## Guidelines
 
-- **Detect partial quarters**: Compare today's date to the quarter end date. If analyzing an incomplete quarter, prominently note this and adjust your analysis
-- **Compare to historical data**: Always reference previous quarters for context
-- **Identify patterns**: Look for multi-quarter trends, not just single-quarter changes
-- **Be balanced**: Include both positive and negative findings
-- **Be actionable**: Recommendations should be specific and implementable
-- **Consider seasonality**: Note if quarterly patterns are typical or anomalous
-- **Highlight outliers**: Call out unusual spikes or drops in any metric
-- **Don't cry wolf on partial data**: For incomplete quarters, only flag true risks (bad rates, declining trends), not low volumes that are expected mid-quarter
-- **Key Findings should be scannable**: The Key Findings section should provide a quick executive summary that busy stakeholders can read in 30 seconds. Keep it concise with 2-3 improvements, 3-4 critical concerns, and 3 top recommendations
+- **Balanced and scannable**: Target ~400-500 words, readable in 2-3 minutes
+- **Detect partial quarters**: Note if data is incomplete in the Executive Summary
+- **Compare to previous quarter**: QoQ changes only, skip historical deep-dives
+- **Balance concerns with wins**: Include both Highlights and Top Concerns sections
+- **Show what matters**: Top downloaded roles help prioritize work
+- **Only critical issues**: If it's not urgent or high-impact, skip it from concerns
+- **Be actionable**: Every recommendation must be specific and implementable
+- **Don't cry wolf on partial data**: For incomplete quarters, only flag true risks (bad rates, declining trends), not low volumes
+- **Use numbers**: Always cite specific metrics, no vague language
 
 ### Data Accuracy and Validation
 
@@ -154,29 +135,23 @@ User types: `/analyze-quarterly-metrics 2026-Q2`
 You should:
 1. Extract the quarter from the user's request or args (format: YYYY-QN, e.g., 2026-Q2)
 2. Determine if the quarter is complete or in-progress based on today's date
-3. Read all the raw metrics data from CSV files for that quarter
-4. Calculate derived metrics from the raw data (merge rates, growth rates, etc.)
-5. Read historical data for comparison (previous 3-4 quarters)
-6. Generate the comprehensive analysis (being smart about partial data)
-7. Validate the report: verify all numbers match data sources and comparisons are correct
-8. Automatically save to `reports/{{quarter}}-analysis.md`
-9. Present it to the user in Markdown format and notify where it was saved
+3. Read the raw metrics data from CSV files for that quarter and previous quarter
+4. Read per-role Galaxy data if available for top downloaded roles analysis
+5. Calculate derived metrics (merge rates, growth rates, etc.)
+6. Generate a focused report (~400-500 words): Executive Summary, Key Metrics, Highlights, Top Downloaded Roles, Top Concerns, Recommendations
+7. Validate: verify all numbers match data sources
+8. Save to `reports/{{quarter}}-analysis.md`
+9. Show the full report to user and notify where file was saved
 
 ## Important
 
-- **Always check if the quarter is complete**: Compare today's date to quarter end
-  - Q1: January 1 - March 31
-  - Q2: April 1 - June 30
-  - Q3: July 1 - September 30
-  - Q4: October 1 - December 31
-- For partial quarters: add clear disclaimer in Executive Summary and adjust risk assessment
-- **Always calculate metrics from CSV data** - don't rely on pre-computed derived_metrics.json
-- If the quarter directory doesn't exist (like 2026-Q1), work with summary CSV data only
-- For per-role analysis, check if `data/{{quarter}}/galaxy_legacy.csv` exists
-- Always show your reasoning and cite specific data points
-- **Automatically save** the report to `reports/{{quarter}}-analysis.md` (create directory if needed)
-- Safe to overwrite existing report files - they're tracked in git
-- Notify the user where the file was saved
+- **Check if quarter is complete**: Compare today's date to quarter end (Q1: Jan-Mar, Q2: Apr-Jun, Q3: Jul-Sep, Q4: Oct-Dec)
+- For partial quarters: add disclaimer in Executive Summary
+- **Calculate metrics from CSV data** - don't rely on pre-computed files
+- **Read per-role data** if `data/{{quarter}}/galaxy_legacy.csv` exists for top downloaded roles
+- **Balanced report**: ~400-500 words, 6 sections (Summary, Metrics, Highlights, Top Roles, Concerns, Recommendations)
+- **Auto-save** to `reports/{{quarter}}-analysis.md` (safe to overwrite, tracked in git)
+- Show full report to user and file location
 
 ## Metric Calculation Formulas
 
