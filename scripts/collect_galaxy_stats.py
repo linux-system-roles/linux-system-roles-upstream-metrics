@@ -193,9 +193,6 @@ def collect_collections():
         print(f"  Collection: {namespace}.{name}")
         download_count = get_collection_downloads_from_api(namespace, name)
 
-        if download_count is None:
-            raise RuntimeError(f"Missing download_count for {namespace}.{name}")
-
         collection_data.append({
             'namespace': namespace,
             'name': name,

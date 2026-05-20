@@ -88,13 +88,20 @@ This skill analyzes quarterly metrics data and generates a comprehensive report 
    - Only flag things as concerns if they represent actual problems, not just "we're only 2 weeks into the quarter"
    - Make it clear in the Executive Summary if data is partial
 
-7. **Automatically save the report**:
+7. **Validate the report for accuracy**:
+   - Re-read all numeric claims in your draft
+   - For each number: verify it matches the correct CSV column/row
+   - For each comparison: verify the direction (higher/lower) matches the math
+   - Check for contradictions: "up from X, but below X" is impossible
+   - If you find errors, fix them before saving
+
+8. **Automatically save the report**:
    - Save to `reports/{{quarter}}-analysis.md`
    - Create the reports directory if it doesn't exist
    - **Safe to overwrite**: If the report file already exists, overwrite it (reports are tracked in git, so previous versions are preserved)
    - Notify the user where the file was saved
 
-8. **Output the analysis** directly to the user in Markdown format.
+9. **Output the analysis** directly to the user in Markdown format.
 
 ## Guidelines
 
@@ -107,6 +114,32 @@ This skill analyzes quarterly metrics data and generates a comprehensive report 
 - **Highlight outliers**: Call out unusual spikes or drops in any metric
 - **Don't cry wolf on partial data**: For incomplete quarters, only flag true risks (bad rates, declining trends), not low volumes that are expected mid-quarter
 - **Key Findings should be scannable**: The Key Findings section should provide a quick executive summary that busy stakeholders can read in 30 seconds. Keep it concise with 2-3 improvements, 3-4 critical concerns, and 3 top recommendations
+
+### Data Accuracy and Validation
+
+**CRITICAL: Verify all numbers before making claims**
+
+1. **Use correct data sources**:
+   - When discussing a specific collection (e.g., fedora.linux_system_roles), use that collection's column, NOT the Total Downloads column
+   - When discussing totals, clearly state "total across all collections"
+   - Double-check: Does the number in your sentence match the CSV cell you're referencing?
+
+2. **Verify comparison direction**:
+   - If A > B: use "higher than", "above", "exceeds", "increased from"
+   - If A < B: use "lower than", "below", "decreased from", "down from"
+   - If A ≈ B: use "similar to", "comparable to", "roughly equal to"
+   - **NEVER** say "A is well below B" when A > B or vice versa
+
+3. **Validate calculations**:
+   - QoQ growth = ((Current - Previous) / Previous) × 100
+   - If growth is positive, use "increased" or "up"; if negative, use "decreased" or "down"
+   - Check sign: positive growth means increase, negative growth means decrease
+
+4. **Before finalizing the report**:
+   - Re-read each numeric claim
+   - Verify the number matches the data source (correct CSV column/row)
+   - Verify the comparison direction matches the math (higher/lower/equal)
+   - Check for internal contradictions (e.g., "up from X, but well below X")
 
 ## Example invocations
 
@@ -125,9 +158,9 @@ You should:
 4. Calculate derived metrics from the raw data (merge rates, growth rates, etc.)
 5. Read historical data for comparison (previous 3-4 quarters)
 6. Generate the comprehensive analysis (being smart about partial data)
-7. Present it in a well-formatted Markdown document
+7. Validate the report: verify all numbers match data sources and comparisons are correct
 8. Automatically save to `reports/{{quarter}}-analysis.md`
-9. Notify user that the report was saved
+9. Present it to the user in Markdown format and notify where it was saved
 
 ## Important
 

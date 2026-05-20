@@ -46,7 +46,7 @@ def setup_plot_style():
         plt.style.use(GRAPH_STYLE)
     except OSError as e:
         print(f"Warning: Style '{GRAPH_STYLE}' not found ({e}), using default")
-        plt.style.use('seaborn-v0_8')
+        plt.style.use('default')
 
 
 def save_graph(output_filename):
