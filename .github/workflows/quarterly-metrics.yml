@@ -45,6 +45,33 @@ jobs:
           # gh CLI is pre-installed on ubuntu-latest runners
           gh --version
 
+      - name: Validate GitHub token
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_PUSH_TOKEN }}
+        run: |
+          if [ -z "$GITHUB_TOKEN" ]; then
+            echo "❌ ERROR: GH_PUSH_TOKEN secret is not configured"
+            echo ""
+            echo "The default GITHUB_TOKEN cannot check collaborator status across repositories."
+            echo "This causes ALL PRs to be incorrectly classified as 'external'."
+            echo ""
+            echo "Please configure GH_PUSH_TOKEN as a repository secret with a Personal Access Token (PAT)"
+            echo "that has the following scopes:"
+            echo "  - repo (Full control of private repositories)"
+            echo "  - read:org (Read org and team membership)"
+            exit 1
+          fi
+
+          # Test that the token can check collaborators
+          echo "Testing collaborator API access..."
+          if ! gh api /repos/linux-system-roles/network/collaborators --silent 2>/dev/null; then
+            echo "⚠️  WARNING: Token cannot list collaborators on linux-system-roles/network"
+            echo "This may result in incorrect external PR classification."
+            echo "Please verify the token has 'repo' and 'read:org' scopes."
+          else
+            echo "✅ Token validated - can access collaborator information"
+          fi
+
       - name: Determine quarter and date range
         id: quarter
         env:
@@ -90,10 +117,20 @@ jobs:
 
       - name: Collect GitHub statistics
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # MUST use GH_PUSH_TOKEN (PAT with org access) to properly check collaborator status
+          # Using default GITHUB_TOKEN will incorrectly classify all PRs as "external"
+          GITHUB_TOKEN: ${{ secrets.GH_PUSH_TOKEN }}
           QUARTER: ${{ steps.quarter.outputs.quarter }}
           DATE_RANGE: ${{ steps.quarter.outputs.date_range }}
-        run: bash scripts/collect_all_github_stats.sh
+        run: |
+          if [ -z "$GITHUB_TOKEN" ]; then
+            echo "ERROR: GH_PUSH_TOKEN secret is not configured"
+            echo "The default GITHUB_TOKEN cannot check collaborator status across repos."
+            echo "This would incorrectly classify all PRs as 'external'."
+            echo "Please configure GH_PUSH_TOKEN secret with a PAT that has 'repo' and 'read:org' scopes."
+            exit 1
+          fi
+          bash scripts/collect_all_github_stats.sh
 
       - name: Collect Galaxy statistics
         env:

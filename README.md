@@ -45,15 +45,19 @@ This generates a comprehensive analysis with trends, risks, and recommendations 
 
 3. **Environment Variables**:
    ```bash
-   export GITHUB_TOKEN="ghp_..."     # Required: GitHub Personal Access Token
-   export GALAXY_API_KEY="..."       # Optional: Prevents API rate limiting
+   export GITHUB_TOKEN="ghp_..."     # Required: Service account token with repo + read:org scopes
+   export GALAXY_API_KEY="..."       # Optional: Service account token for Galaxy API
    ```
 
+   **About GITHUB_TOKEN:**
+   - **REQUIRED** - Must be a service account token with `repo` and `read:org` scopes
+   - **Why:** Used to check if PR authors are repository collaborators (maintainers vs external contributors)
+   - **Without it:** ALL PRs will be incorrectly classified as "external"
+   
    **About GALAXY_API_KEY:**
    - **Optional** - data collection works without it
-   - **Why use it?** Authenticated requests have higher rate limits
+   - **Why use it?** Prevents API rate limiting during Galaxy data collection
    - **When needed?** If you hit rate limits (429 errors) during Galaxy API calls
-   - **How to get it:** Login to galaxy.ansible.com → Profile → API Key
 
 ### Quick Start
 
@@ -133,8 +137,13 @@ The workflow creates a Pull Request with the collected data.
 
 ### Required Secrets
 
-- `GITHUB_TOKEN` - Automatically provided by GitHub Actions
-- `GALAXY_API_KEY` - Optional, prevents rate limiting
+- **`GH_PUSH_TOKEN`** (**REQUIRED**) - Service account token with `repo` and `read:org` scopes
+  - **Why required:** The default `GITHUB_TOKEN` cannot check collaborator status across repositories, causing all PRs to be incorrectly classified as "external"
+  - **What it is:** GitHub token from a service account with access to the linux-system-roles organization
+  - **Validation:** The workflow will fail with a clear error if this token is missing or lacks proper permissions
+- **`GALAXY_API_KEY`** (Optional) - Service account token for Ansible Galaxy API
+  - **Why use it:** Prevents Galaxy API rate limiting during data collection
+  - **What it is:** API token from a service account on galaxy.ansible.com
 
 ## Troubleshooting
 
