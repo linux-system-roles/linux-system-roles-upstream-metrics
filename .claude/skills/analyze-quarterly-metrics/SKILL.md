@@ -28,7 +28,14 @@ This skill analyzes quarterly metrics data and generates a FOCUSED report (~400-
    - **QoQ Growth rates**: Compare current quarter to previous quarter
    - **Fastest growing roles**: If per-role data exists, identify top gainers by comparing to previous quarter
 
-4. **Analyze the data** and generate a FOCUSED report with these sections:
+4. **Fetch rejected external PR details** (if External Acceptance Rate < 100%):
+   - From `data/{quarter}/prs.csv`, identify roles where: `Created non-maint - Merged non-maint - Open non-maint > 0`
+   - For each role with rejections, run: `gh pr list -R {org}/{role} -S "created:{date_range} is:closed is:unmerged -author:app/" --json number,author,title,url --limit 20`
+   - Parse the results to get PR numbers, authors, and titles
+   - Include this information in the "Top Concerns" or "Additional Notes" section of the report
+   - Format: "Rejected External PRs: role #123 (author), role #456 (author)"
+
+5. **Analyze the data** and generate a FOCUSED report with these sections:
 
    ### Executive Summary (2-3 sentences)
    - High-level overview: what's the overall health? One key win, one key concern.
