@@ -6,6 +6,7 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(dirname "$SCRIPT_DIR")"
+CONFIG_FILE="$ROOT_DIR/config.yaml"
 
 # Check required environment variables
 if [ -z "$QUARTER" ]; then
@@ -15,6 +16,11 @@ fi
 
 if [ -z "$DATE_RANGE" ]; then
     echo "ERROR: DATE_RANGE environment variable not set"
+    exit 1
+fi
+
+if [ ! -f "$CONFIG_FILE" ]; then
+    echo "ERROR: Config file not found: $CONFIG_FILE"
     exit 1
 fi
 
@@ -31,61 +37,91 @@ echo "Role,Issues Created,Issues Closed,Created non-maint,Closed non-maint" > "$
 echo "Collecting GitHub statistics for $QUARTER ($DATE_RANGE)..."
 echo ""
 
-# Organization 1: linux-system-roles (all repos except excluded)
-echo "================================================"
-echo "Collecting from linux-system-roles organization"
-echo "================================================"
+# Parse organizations from config.yaml
+ORG_COUNT=$(python3 -c "
+import yaml
+with open('$CONFIG_FILE') as f:
+    config = yaml.safe_load(f)
+print(len(config['github'].get('organizations', [])))
+")
 
-# Get all repos from linux-system-roles org
-REPOS=$(gh repo list linux-system-roles -L 100 --json name -q '.[].name')
+for (( i=0; i<ORG_COUNT; i++ )); do
+    ORG_NAME=$(python3 -c "
+import yaml
+with open('$CONFIG_FILE') as f:
+    config = yaml.safe_load(f)
+print(config['github']['organizations'][$i]['name'])
+")
 
-# Exclusion list from config.yaml
-EXCLUDE_REPOS="tft-tests test-harness auto-maintenance linux-system-roles.github.io .github template linux-system-roles-upstream-metrics"
+    EXCLUDE_REPOS=$(python3 -c "
+import yaml
+with open('$CONFIG_FILE') as f:
+    config = yaml.safe_load(f)
+org = config['github']['organizations'][$i]
+print(' '.join(org.get('exclude', [])))
+")
 
-for repo in $REPOS; do
-    # Check if repo is in exclusion list
-    skip=false
-    for excluded in $EXCLUDE_REPOS; do
-        if [ "$repo" = "$excluded" ]; then
-            skip=true
-            break
+    echo "================================================"
+    echo "Collecting from $ORG_NAME organization"
+    echo "================================================"
+
+    REPOS=$(gh repo list "$ORG_NAME" -L 100 --json name -q '.[].name')
+
+    for repo in $REPOS; do
+        skip=false
+        for excluded in $EXCLUDE_REPOS; do
+            if [ "$repo" = "$excluded" ]; then
+                skip=true
+                break
+            fi
+        done
+
+        if [ "$skip" = true ]; then
+            continue
         fi
+
+        echo "  $repo"
+
+        upstream_org="$ORG_NAME" \
+        repo="$repo" \
+        DATE_RANGE="$DATE_RANGE" \
+        PRS_CSVFILE="$PRS_CSV" \
+        ISSUES_CSVFILE="$ISSUES_CSV" \
+        "$SCRIPT_DIR/collect_github_stats.sh"
     done
 
-    if [ "$skip" = true ]; then
-        continue
-    fi
-
-    echo "  $repo"
-
-    # Call collect_github_stats.sh for this repo
-    upstream_org=linux-system-roles \
-    repo="$repo" \
-    DATE_RANGE="$DATE_RANGE" \
-    PRS_CSVFILE="$PRS_CSV" \
-    ISSUES_CSVFILE="$ISSUES_CSV" \
-    "$SCRIPT_DIR/collect_github_stats.sh"
+    echo ""
+    echo "✓ $ORG_NAME data collected"
+    echo ""
 done
 
-echo ""
-echo "✓ linux-system-roles data collected"
-echo ""
+# Parse individual repositories from config.yaml
+REPO_ENTRIES=$(python3 -c "
+import yaml
+with open('$CONFIG_FILE') as f:
+    config = yaml.safe_load(f)
+for r in config['github'].get('repositories', []):
+    print(r['org'] + ' ' + r['repo'])
+")
 
-# Organization 2: willshersystems/ansible-sshd
-echo "================================================"
-echo "Collecting from willshersystems/ansible-sshd"
-echo "================================================"
+if [ -n "$REPO_ENTRIES" ]; then
+    while IFS=' ' read -r org repo; do
+        echo "================================================"
+        echo "Collecting from $org/$repo"
+        echo "================================================"
 
-upstream_org=willshersystems \
-repo=ansible-sshd \
-DATE_RANGE="$DATE_RANGE" \
-PRS_CSVFILE="$PRS_CSV" \
-ISSUES_CSVFILE="$ISSUES_CSV" \
-"$SCRIPT_DIR/collect_github_stats.sh"
+        upstream_org="$org" \
+        repo="$repo" \
+        DATE_RANGE="$DATE_RANGE" \
+        PRS_CSVFILE="$PRS_CSV" \
+        ISSUES_CSVFILE="$ISSUES_CSV" \
+        "$SCRIPT_DIR/collect_github_stats.sh"
 
-echo ""
-echo "✓ willshersystems/ansible-sshd data collected"
-echo ""
+        echo ""
+        echo "✓ $org/$repo data collected"
+        echo ""
+    done <<< "$REPO_ENTRIES"
+fi
 
 # Summary
 echo "================================================"

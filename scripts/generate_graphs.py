@@ -19,9 +19,16 @@ from pathlib import Path
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+import yaml
 
 SCRIPT_DIR = Path(__file__).parent
 ROOT_DIR = SCRIPT_DIR.parent
+CONFIG_FILE = ROOT_DIR / "config.yaml"
+
+
+def load_config():
+    with open(CONFIG_FILE) as f:
+        return yaml.safe_load(f)
 
 # Graph configuration
 GRAPH_STYLE = 'seaborn-v0_8'
@@ -416,7 +423,15 @@ def generate_collection_graph(quarter, collection_name):
     downloads = df[collection_name].values
 
     colors = COLORS
-    color = colors['maintainer'] if 'fedora' in collection_name else colors['external']
+    color_cycle = [colors['maintainer'], colors['external'], colors['merged'],
+                   colors['open'], colors['closed']]
+    config = load_config()
+    collection_names = [
+        f"{c['namespace']}.{c['name']}"
+        for c in config['galaxy']['collections']
+    ]
+    idx = collection_names.index(collection_name) if collection_name in collection_names else 0
+    color = color_cycle[idx % len(color_cycle)]
 
     ax.plot(x, downloads, marker='o', linewidth=3, markersize=10,
             color=color, label=collection_name)
@@ -474,8 +489,9 @@ def main():
     generate_legacy_roles_quarterly_delta_graph(quarter)
     generate_legacy_total_graph(quarter)
     generate_legacy_quarterly_delta_total_graph(quarter)
-    generate_collection_graph(quarter, 'fedora.linux_system_roles')
-    generate_collection_graph(quarter, 'microsoft.sql')
+    config = load_config()
+    for c in config['galaxy']['collections']:
+        generate_collection_graph(quarter, f"{c['namespace']}.{c['name']}")
 
     print("=" * 60)
     print(f"✅ Graph generation complete for {quarter}")

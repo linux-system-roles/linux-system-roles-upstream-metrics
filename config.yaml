@@ -1,0 +1,36 @@
+github:
+  organizations:
+    - name: linux-system-roles
+      exclude:
+        - tft-tests
+        - test-harness
+        - auto-maintenance
+        - linux-system-roles.github.io
+        - .github
+        - template
+        - linux-system-roles-upstream-metrics
+
+  repositories:
+    - org: willshersystems
+      repo: ansible-sshd
+    - org: redhat-cop
+      repo: infra.leapp
+
+galaxy:
+  legacy_roles:
+    namespaces:
+      - name: linux-system-roles
+        exclude:
+          - template
+          - mssql
+      - name: willshersystems
+        include:
+          - sshd
+
+  collections:
+    - namespace: fedora
+      name: linux_system_roles
+    - namespace: microsoft
+      name: sql
+    - namespace: infra
+      name: leapp
