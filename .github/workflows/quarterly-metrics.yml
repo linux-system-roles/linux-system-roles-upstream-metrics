@@ -130,7 +130,7 @@ jobs:
             echo "Please configure GH_PUSH_TOKEN secret with a PAT that has 'repo' and 'read:org' scopes."
             exit 1
           fi
-          bash scripts/collect_all_github_stats.sh
+          bash scripts/collect_github_stats.sh
 
       - name: Collect Galaxy statistics
         env:

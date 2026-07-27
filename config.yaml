@@ -16,6 +16,13 @@ github:
     - org: redhat-cop
       repo: infra.leapp
 
+  filters:
+    exclude_bots: true
+    pr_title_exclude_patterns:
+      - "^ci:"
+      - "^docs\\(changelog\\)"
+      - "\\[citest_skip\\]"
+
 galaxy:
   legacy_roles:
     namespaces:
