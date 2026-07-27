@@ -99,18 +99,22 @@ def collect_legacy_roles(api_key, namespaces_config):
 
             all_roles = []
             page = 1
-            while True:
-                params['page'] = page
-                response = retry_request(LEGACY_API_URL, headers=headers, params=params)
-                data = response.json()
-                roles = data.get('results', [])
-                if not roles:
-                    break
-                all_roles.extend(roles)
-                if not data.get('next'):
-                    break
-                page += 1
-                print(f"    Fetching page {page}...")
+            try:
+                while True:
+                    params['page'] = page
+                    response = retry_request(LEGACY_API_URL, headers=headers, params=params)
+                    data = response.json()
+                    roles = data.get('results', [])
+                    if not roles:
+                        break
+                    all_roles.extend(roles)
+                    if not data.get('next'):
+                        break
+                    page += 1
+                    print(f"    Fetching page {page}...")
+            except Exception as e:
+                print(f"    ERROR fetching namespace {namespace}: {e}")
+                continue
 
             print(f"    Total roles found: {len(all_roles)}")
 

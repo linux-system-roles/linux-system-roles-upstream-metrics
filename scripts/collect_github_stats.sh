@@ -38,16 +38,18 @@ echo "Collecting GitHub statistics for $QUARTER ($DATE_RANGE)..."
 echo ""
 
 # Parse filter settings from config.yaml
-FILTER_CONFIG=$(python3 -c "
+EXCLUDE_BOTS=$(python3 -c "
 import yaml
 with open('$CONFIG_FILE') as f:
     config = yaml.safe_load(f)
-filters = config['github'].get('filters', {})
-print('EXCLUDE_BOTS=' + str(filters.get('exclude_bots', True)).lower())
-patterns = filters.get('pr_title_exclude_patterns', [])
-print('PR_TITLE_EXCLUDE_PATTERNS=' + '|||'.join(patterns))
+print(str(config['github'].get('filters', {}).get('exclude_bots', True)).lower())
 ")
-eval "$FILTER_CONFIG"
+PR_TITLE_EXCLUDE_PATTERNS=$(python3 -c "
+import yaml
+with open('$CONFIG_FILE') as f:
+    config = yaml.safe_load(f)
+print('\x1f'.join(config['github'].get('filters', {}).get('pr_title_exclude_patterns', [])))
+")
 export EXCLUDE_BOTS
 export PR_TITLE_EXCLUDE_PATTERNS
 

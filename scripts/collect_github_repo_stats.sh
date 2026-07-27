@@ -113,7 +113,7 @@ get_issues_closed() {
 get_prs > prs.txt
 
 # Parse PR title exclusion patterns from config (passed via env var)
-IFS='|||' read -ra TITLE_PATTERNS <<< "${PR_TITLE_EXCLUDE_PATTERNS:-}"
+IFS=$'\x1f' read -ra TITLE_PATTERNS <<< "${PR_TITLE_EXCLUDE_PATTERNS:-}"
 
 while read -r number author is_bot state title; do
     # exclude bot PRs if configured
