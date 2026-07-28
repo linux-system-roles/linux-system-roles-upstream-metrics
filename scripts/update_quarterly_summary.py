@@ -150,6 +150,8 @@ def aggregate_galaxy_collections(quarter):
         downloads = int(row['download_count'])
         current_cumulative[collection_name] = downloads
 
+    collection_names = sorted(current_cumulative.keys())
+
     # Read cumulative tracking file to get previous totals
     cumulative_file = ROOT_DIR / "data" / "galaxy_collections_cumulative.csv"
     previous_cumulative = {}
@@ -160,33 +162,34 @@ def aggregate_galaxy_collections(quarter):
         previous_df = cumulative_df[cumulative_df['Quarter'] != quarter].sort_values('Quarter')
         if len(previous_df) > 0:
             last_row = previous_df.iloc[-1]
-            previous_cumulative['fedora.linux_system_roles'] = int(last_row.get('fedora.linux_system_roles', 0))
-            previous_cumulative['microsoft.sql'] = int(last_row.get('microsoft.sql', 0))
+            for name in collection_names:
+                previous_cumulative[name] = int(last_row.get(name, 0))
             print(f"  Previous quarter: {last_row['Quarter']}")
-            print(f"    fedora cumulative: {previous_cumulative['fedora.linux_system_roles']:,}")
-            print(f"    microsoft cumulative: {previous_cumulative['microsoft.sql']:,}")
+            for name in collection_names:
+                print(f"    {name} cumulative: {previous_cumulative[name]:,}")
 
     # Calculate quarterly deltas
-    fedora_delta = current_cumulative.get('fedora.linux_system_roles', 0) - previous_cumulative.get('fedora.linux_system_roles', 0)
-    microsoft_delta = current_cumulative.get('microsoft.sql', 0) - previous_cumulative.get('microsoft.sql', 0)
-    total_delta = fedora_delta + microsoft_delta
+    deltas = {}
+    for name in collection_names:
+        deltas[name] = current_cumulative.get(name, 0) - previous_cumulative.get(name, 0)
+    total_delta = sum(deltas.values())
 
     # Update cumulative tracking file
-    new_cumulative_row = {
-        'Quarter': quarter,
-        'fedora.linux_system_roles': current_cumulative.get('fedora.linux_system_roles', 0),
-        'microsoft.sql': current_cumulative.get('microsoft.sql', 0)
-    }
+    new_cumulative_row = {'Quarter': quarter}
+    for name in collection_names:
+        new_cumulative_row[name] = current_cumulative.get(name, 0)
 
     if cumulative_file.exists():
         cumulative_df = pd.read_csv(cumulative_file)
+        # Add columns for any new collections
+        for name in collection_names:
+            if name not in cumulative_df.columns:
+                cumulative_df[name] = 0
         # Check if quarter already exists
         if quarter in cumulative_df['Quarter'].values:
-            # Remove old row and add new one
             cumulative_df = cumulative_df[cumulative_df['Quarter'] != quarter]
             cumulative_df = pd.concat([cumulative_df, pd.DataFrame([new_cumulative_row])], ignore_index=True)
         else:
-            # Append new row
             cumulative_df = pd.concat([cumulative_df, pd.DataFrame([new_cumulative_row])], ignore_index=True)
     else:
         cumulative_df = pd.DataFrame([new_cumulative_row])
@@ -196,15 +199,13 @@ def aggregate_galaxy_collections(quarter):
     print(f"  Updated cumulative tracking: {cumulative_file}")
 
     # Build summary with quarterly deltas
-    summary = {
-        'Quarter': quarter,
-        'fedora.linux_system_roles': fedora_delta,
-        'microsoft.sql': microsoft_delta,
-        'Total Downloads': total_delta
-    }
+    summary = {'Quarter': quarter}
+    for name in collection_names:
+        summary[name] = deltas[name]
+    summary['Total Downloads'] = total_delta
 
-    print(f"\n  fedora.linux_system_roles: {fedora_delta:,} (quarterly new downloads)")
-    print(f"  microsoft.sql: {microsoft_delta:,} (quarterly new downloads)")
+    for name in collection_names:
+        print(f"\n  {name}: {deltas[name]:,} (quarterly new downloads)")
     print(f"  Total: {total_delta:,}")
 
     return summary

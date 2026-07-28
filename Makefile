@@ -26,7 +26,7 @@ help:
 
 collect-github:
 	@test -n "$(GITHUB_TOKEN)" || (echo "ERROR: GITHUB_TOKEN not set" && exit 1)
-	@QUARTER=$(QUARTER) DATE_RANGE=$(DATE_RANGE) bash scripts/collect_all_github_stats.sh
+	@QUARTER=$(QUARTER) DATE_RANGE=$(DATE_RANGE) bash scripts/collect_github_stats.sh
 
 collect-galaxy:
 	@QUARTER=$(QUARTER) python3 scripts/collect_galaxy_stats.py
