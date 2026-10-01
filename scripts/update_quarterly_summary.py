@@ -155,9 +155,13 @@ def aggregate_galaxy_collections(quarter):
     # Read cumulative tracking file to get previous totals
     cumulative_file = ROOT_DIR / "data" / "galaxy_collections_cumulative.csv"
     previous_cumulative = {}
+    previously_tracked = set()
 
     if cumulative_file.exists():
         cumulative_df = pd.read_csv(cumulative_file)
+        # Collections that already have a column in the tracking file have been
+        # observed before; one missing here is being seen for the first time.
+        previously_tracked = {col for col in cumulative_df.columns if col != 'Quarter'}
         # Exclude current quarter if it exists, sort chronologically, then get the last row
         previous_df = cumulative_df[cumulative_df['Quarter'] != quarter].sort_values('Quarter')
         if len(previous_df) > 0:
@@ -168,10 +172,15 @@ def aggregate_galaxy_collections(quarter):
             for name in collection_names:
                 print(f"    {name} cumulative: {previous_cumulative[name]:,}")
 
-    # Calculate quarterly deltas
+    # Calculate quarterly deltas. A collection's first observation establishes
+    # its baseline (delta 0) rather than counting its full cumulative total as
+    # quarterly growth; later quarters track the real change from that baseline.
     deltas = {}
     for name in collection_names:
-        deltas[name] = current_cumulative.get(name, 0) - previous_cumulative.get(name, 0)
+        if name in previously_tracked:
+            deltas[name] = current_cumulative.get(name, 0) - previous_cumulative.get(name, 0)
+        else:
+            deltas[name] = 0
     total_delta = sum(deltas.values())
 
     # Update cumulative tracking file

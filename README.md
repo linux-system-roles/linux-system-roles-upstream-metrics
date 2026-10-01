@@ -107,7 +107,7 @@ make clean              # Remove temporary files
 
 ### Ansible Galaxy
 - **Legacy roles:** linux-system-roles namespace + willshersystems/sshd
-- **Collections:** fedora.linux_system_roles, microsoft.sql
+- **Collections:** fedora.linux_system_roles, microsoft.sql, infra.leapp
 - **Snapshot-based:** Current totals only (no historical queries available)
 - **Delta calculation:** Current quarter total minus previous quarter total
 
@@ -118,6 +118,8 @@ make clean              # Remove temporary files
 - `github-issues.png` - Issue statistics over time (4 metrics)
 - `galaxy-legacy-total.png` - Cumulative legacy downloads
 - `galaxy-legacy-total-delta.png` - Quarterly delta downloads
+- `galaxy-collections-total.png` - Cumulative collections downloads (all collections combined)
+- `galaxy-collections-total-delta.png` - Quarterly delta downloads (all collections combined)
 - `galaxy-collection-*.png` - Collection downloads per quarter
 
 **Quarter-specific:**
