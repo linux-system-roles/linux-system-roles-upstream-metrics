@@ -55,12 +55,13 @@ Detailed per-repository/per-role data collected each quarter.
 - Use for tracking overall growth trend
 
 **galaxy_collections_summary.csv** - Collection downloads per quarter
-- Columns: Quarter, fedora.linux_system_roles, microsoft.sql, Total Downloads
+- Columns: Quarter, fedora.linux_system_roles, microsoft.sql, infra.leapp, Total Downloads
+- Note: per-collection columns are data-driven (added automatically as new collections are collected); Total Downloads is always the last column
 - Values: QUARTERLY DELTAS (new downloads in that quarter, not cumulative)
 - Calculated by subtracting previous quarter's cumulative from current quarter's cumulative
 
 **galaxy_collections_cumulative.csv** - Cumulative tracking (internal use)
-- Columns: Quarter, fedora.linux_system_roles, microsoft.sql
+- Columns: Quarter, fedora.linux_system_roles, microsoft.sql, infra.leapp (per-collection columns are added automatically as new collections are collected)
 - Values: CUMULATIVE totals at end of each quarter
 - Used by update_quarterly_summary.py to calculate deltas
 - Automatically updated when running quarterly workflow

@@ -9,8 +9,11 @@ Graphs generated:
 4. Legacy Roles Quarterly Delta per Role (downloads gained during current quarter)
 5. Total Legacy Roles Downloads (cumulative) - all historical data
 6. Total Legacy Roles Quarterly Delta (new downloads per quarter) - all historical data
-7. fedora.linux_system_roles Downloads - all historical data
-8. microsoft.sql Downloads - all historical data
+7. Total Collections Downloads (cumulative) - all historical data
+8. Total Collections Quarterly Delta (new downloads per quarter) - all historical data
+9. fedora.linux_system_roles Downloads - all historical data
+10. microsoft.sql Downloads - all historical data
+11. infra.leapp Downloads - all historical data
 """
 
 import os
@@ -398,6 +401,113 @@ def generate_legacy_quarterly_delta_total_graph(quarter):
     save_graph("galaxy-legacy-total-delta.png")
 
 
+def generate_collections_total_graph(quarter):
+    """Generate total collections downloads (cumulative) - shows ALL historical data"""
+    print("Generating Galaxy collections total downloads graph...")
+
+    cumulative_file = ROOT_DIR / "data" / "galaxy_collections_cumulative.csv"
+    if not cumulative_file.exists():
+        print("  No galaxy_collections_cumulative.csv found")
+        return
+
+    df = pd.read_csv(cumulative_file).sort_values('Quarter')
+    # Sum all collection columns per quarter; fillna(0) handles collections
+    # (e.g. infra.leapp) that were added in later quarters.
+    df['Total'] = df.drop(columns=['Quarter']).fillna(0).sum(axis=1)
+    print(f"  Showing {len(df)} quarters of data")
+
+    figsize = GRAPH_FIGSIZE
+    fig, ax = plt.subplots(figsize=figsize)
+
+    x = np.arange(len(df))
+    quarters = df['Quarter'].values
+    downloads = df['Total'].values
+
+    colors = COLORS
+
+    ax.plot(x, downloads, marker='o', linewidth=3, markersize=10,
+            color=colors['merged'], label='Total Downloads')
+
+    # Add trend line if enabled
+    if SHOW_TRENDS and len(x) > 2:
+        z = np.polyfit(x, downloads, 1)
+        p = np.poly1d(z)
+        ax.plot(x, p(x), "--", alpha=0.5, color=colors['closed'],
+                linewidth=2, label='Trend')
+
+    ax.set_xlabel('Quarter', fontsize=12, fontweight='bold')
+    ax.set_ylabel('Total Downloads (Cumulative)', fontsize=12, fontweight='bold')
+    ax.set_title('Galaxy Collections - Total Downloads Over Time',
+                 fontsize=14, fontweight='bold')
+    ax.set_xticks(x)
+    ax.set_xticklabels(quarters, rotation=45, ha='right')
+    ax.legend(loc='best')
+
+    if SHOW_GRID:
+        ax.grid(alpha=0.3)
+
+    # Add value labels
+    for i, val in enumerate(downloads):
+        ax.text(i, val, f'{val:,.0f}', ha='center', va='bottom',
+                fontweight='bold', fontsize=9)
+
+    plt.tight_layout()
+
+    save_graph("galaxy-collections-total.png")
+
+
+def generate_collections_quarterly_delta_total_graph(quarter):
+    """Generate quarterly delta for total collections downloads (new downloads per quarter)"""
+    print("Generating Galaxy collections quarterly delta total graph...")
+
+    summary_file = ROOT_DIR / "data" / "galaxy_collections_summary.csv"
+    if not summary_file.exists():
+        print("  No galaxy_collections_summary.csv found")
+        return
+
+    df = pd.read_csv(summary_file).sort_values('Quarter')
+
+    if 'Total Downloads' not in df.columns:
+        print("  No 'Total Downloads' column in galaxy_collections_summary.csv")
+        return
+
+    # The 'Total Downloads' column is already a per-quarter delta (sum of each
+    # collection's quarterly delta), so plot it directly without diffing.
+    print(f"  Showing {len(df)} quarters of delta data")
+
+    figsize = GRAPH_FIGSIZE
+    fig, ax = plt.subplots(figsize=figsize)
+
+    x = np.arange(len(df))
+    quarters = df['Quarter'].values
+    deltas = df['Total Downloads'].values
+
+    colors = COLORS
+
+    # Bar chart of quarterly growth
+    ax.bar(x, deltas, color=colors['merged'], alpha=0.8, label='Quarterly Growth')
+
+    ax.set_xlabel('Quarter', fontsize=12, fontweight='bold')
+    ax.set_ylabel('New Downloads (Quarterly)', fontsize=12, fontweight='bold')
+    ax.set_title('Galaxy Collections - Quarterly Download Growth',
+                 fontsize=14, fontweight='bold')
+    ax.set_xticks(x)
+    ax.set_xticklabels(quarters, rotation=45, ha='right')
+    ax.legend(loc='best')
+
+    if SHOW_GRID:
+        ax.grid(axis='y', alpha=0.3)
+
+    # Add value labels
+    for i, val in enumerate(deltas):
+        ax.text(i, val, f'{val:,.0f}', ha='center', va='bottom',
+                fontweight='bold', fontsize=9)
+
+    plt.tight_layout()
+
+    save_graph("galaxy-collections-total-delta.png")
+
+
 def generate_collection_graph(quarter, collection_name):
     """Generate individual collection downloads graph - shows ALL historical data"""
     print(f"Generating {collection_name} downloads graph...")
@@ -489,6 +599,8 @@ def main():
     generate_legacy_roles_quarterly_delta_graph(quarter)
     generate_legacy_total_graph(quarter)
     generate_legacy_quarterly_delta_total_graph(quarter)
+    generate_collections_total_graph(quarter)
+    generate_collections_quarterly_delta_total_graph(quarter)
     config = load_config()
     for c in config['galaxy']['collections']:
         generate_collection_graph(quarter, f"{c['namespace']}.{c['name']}")
