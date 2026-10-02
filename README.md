@@ -20,11 +20,11 @@ The workflow creates a Pull Request with the collected data and graphs.
 
 ### After Data Collection
 
-Once the PR is merged, generate the quarterly analysis report using the AI skill:
-
-```
-/analyze-quarterly-metrics 2026-Q2
-```
+Once the PR is merged, generate the quarterly analysis report using the AI
+analysis procedure in [`skills/analyze-quarterly-metrics.md`](skills/analyze-quarterly-metrics.md).
+It is a plain-Markdown, tool-agnostic procedure that any AI assistant (or a
+human) can follow — point your assistant at the file and ask it to analyze a
+quarter, e.g. "analyze the quarterly metrics for 2026-Q2".
 
 This generates a comprehensive analysis with trends, risks, and recommendations in `reports/2026-Q2-analysis.md`.
 
