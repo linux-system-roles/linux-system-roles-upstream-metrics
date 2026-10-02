@@ -131,10 +131,8 @@ This skill analyzes quarterly metrics data and generates a FOCUSED report (~400-
 
 ## Example invocations
 
-**Via skill invocation:**
-User types: `/analyze-quarterly-metrics 2026-Q2`
-
-**Via natural language:**
+Point your AI assistant at this file and ask it to analyze a quarter. The
+quarter is given as `YYYY-QN` (e.g. `2026-Q2`), via natural language:
 - "Analyze the quarterly metrics for 2026-Q2"
 - "Generate a quarterly report for Q2 2026"
 - "What do the metrics show for this quarter?"

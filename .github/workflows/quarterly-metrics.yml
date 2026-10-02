@@ -195,7 +195,7 @@ jobs:
           else
             gh pr create \
               --title "Quarterly Metrics - ${QUARTER}" \
-              --body "Automated metrics collection for ${QUARTER}. **Data:** \`data/${QUARTER}/\` **Graphs:** \`reports/images/\` After merging, generate analysis: \`/analyze-quarterly-metrics ${QUARTER}\`" \
+              --body "Automated metrics collection for ${QUARTER}. **Data:** \`data/${QUARTER}/\` **Graphs:** \`reports/images/\` After merging, generate analysis by following \`skills/analyze-quarterly-metrics.md\` for ${QUARTER}" \
               --base main \
               --head "$BRANCH_NAME"
           fi
